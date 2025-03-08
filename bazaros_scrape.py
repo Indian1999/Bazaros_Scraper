@@ -8,13 +8,12 @@ options.add_argument("--headless=new")
 
 driver = webdriver.Chrome(options = options)
 #driver.get("https://bazarosonline.hu/roni-trend-hu/")
-driver.get("https://bazarosonline.hu/lumea-pungilor-hu/")
+driver.get("https://bazarosonline.hu/alex-store-hu/")
 
-"""
+
 for i in range(5):
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(5)
-"""
+    time.sleep(1)
 
 results = driver.find_elements(By.CSS_SELECTOR, "div.ut2-gl__body")
 
@@ -25,7 +24,7 @@ products = []
 for result in results:
     product = {}
     product["title"] = result.find_element(By.CSS_SELECTOR, ".product-title").text
-    product["price"] = result.find_element(By.CSS_SELECTOR, ".ty-price-num").text
+    product["price"] = int(result.find_element(By.CSS_SELECTOR, ".ty-price-num").text.replace(",",""))
     product["img-url"] = result.find_element(By.TAG_NAME, "img").get_attribute("src")
     product["url"] = result.find_element(By.CSS_SELECTOR, "a.product_icon_lnk").get_attribute("href")
     
@@ -47,7 +46,7 @@ for result in results:
             style["fontSize"] == "16px" and
             style["fontWeight"] == "700" and
             style["paddingTop"]== "8px"):
-            ppu = elem.text
+            ppu = int(elem.text.split(" ")[0])
             break
     product["price-per-unit"] = ppu
     products.append(product)
