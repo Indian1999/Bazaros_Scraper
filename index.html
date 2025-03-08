@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termékek Listája</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #003366;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #e6f7ff;
+            color: #003366;
+        }
+
+        img {
+            max-width: 100px;
+            height: auto;
+        }
+
+        .product-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        .product-card {
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .product-card h3 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .product-card p {
+            color: #555;
+        }
+
+        .product-card a {
+            display: inline-block;
+            margin-top: 10px;
+            background-color: #003366;
+            color: white;
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .product-card a:hover {
+            background-color: #005e8e;
+        }
+
+        .price-per-unit {
+            font-size: 14px;
+            color: #777;
+        }
+
+        .filter-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Termékek Listája</h1>
+
+    <input type="file" id="file-input" accept=".json">
+    <div class="filter-container">
+        <label for="sort-by">Rendezés: </label>
+        <select id="sort-by">
+            <option value="price">Ár szerint</option>
+            <option value="price-per-unit">Egységár szerint</option>
+        </select>
+    </div>
+    <div class="product-container" id="products-container">
+        <!-- Termékek itt jelennek meg -->
+    </div>
+
+    <script>
+        // Fájl beolvasása és JSON megjelenítése
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type === "application/json") {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    try {
+                        const productsData = JSON.parse(e.target.result);
+                        displayProducts(productsData);
+                        addSortListener(productsData); // Rendezési lehetőség
+                    } catch (error) {
+                        alert("Hiba történt a JSON fájl beolvasása közben!");
+                    }
+                };
+
+                reader.readAsText(file);
+            } else {
+                alert("Csak JSON fájlokat tölthetsz fel!");
+            }
+        });
+
+        // Termékek megjelenítése a weboldalon
+        function displayProducts(productsData) {
+            const container = document.getElementById("products-container");
+            container.innerHTML = '';  // Ürítsük ki a container-t, mielőtt új adatokat töltünk
+
+            productsData.forEach(product => {
+                const productCard = document.createElement("div");
+                productCard.classList.add("product-card");
+
+                const productTitle = document.createElement("h3");
+                productTitle.textContent = product.title;
+
+                const productPrice = document.createElement("p");
+                productPrice.textContent = `Ár: ${product.price} Ft`;
+
+                const productImage = document.createElement("img");
+                productImage.src = product["img-url"];
+                productImage.alt = product.title;
+
+                const productLink = document.createElement("a");
+                productLink.href = product.url;
+                productLink.textContent = "További részletek";
+
+                // Ha price-per-unit van, akkor azt használjuk, ha null, akkor a price mezőt
+                const pricePerUnit = product["price-per-unit"] !== null ? product["price-per-unit"] : product["price"];
+                const pricePerUnitElement = document.createElement("p");
+                pricePerUnitElement.classList.add("price-per-unit");
+                pricePerUnitElement.textContent = `Egységár: ${pricePerUnit} Ft`;
+
+                productCard.appendChild(productImage);
+                productCard.appendChild(productTitle);
+                productCard.appendChild(productPrice);
+                productCard.appendChild(pricePerUnitElement);
+                productCard.appendChild(productLink);
+
+                container.appendChild(productCard);
+            });
+        }
+
+        // Rendezési lehetőség a választott kritérium alapján
+        function addSortListener(productsData) {
+            const sortBySelect = document.getElementById('sort-by');
+            sortBySelect.addEventListener('change', function() {
+                const selectedSort = sortBySelect.value;
+                const sortedProducts = [...productsData].sort((a, b) => {
+                    const aPrice = parseFloat(a[selectedSort] !== null ? a[selectedSort] : a["price"]);
+                    const bPrice = parseFloat(b[selectedSort] !== null ? b[selectedSort] : b["price"]);
+                    return aPrice - bPrice;  // Növekvő rendezés
+                });
+                displayProducts(sortedProducts);
+            });
+        }
+    </script>
+
+</body>
+</html>
